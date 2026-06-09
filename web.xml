@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+  <display-name>CueTransRep</display-name>
+
+<servlet>
+<servlet-name>SimpleCaptcha</servlet-name>
+<servlet-class>nl.captcha.servlet.SimpleCaptchaServlet</servlet-class>
+</servlet>
+ 
+<servlet-mapping>
+<servlet-name>SimpleCaptcha</servlet-name>
+<url-pattern>/simpleCaptcha.jpg/*</url-pattern>
+</servlet-mapping>	 
+<servlet>
+		<servlet-name>JMSServlet</servlet-name>
+		<servlet-class>com.cuetrans.core.JMSServlet</servlet-class>
+</servlet>  
+ 
+<servlet-mapping>
+		<servlet-name>JMSServlet</servlet-name> 
+		<url-pattern>/JMSServlet</url-pattern>
+</servlet-mapping>
+
+<servlet>
+		<servlet-name>GridExportExcel</servlet-name>
+		<servlet-class>com.bct.cuetrans.GridExportExcel</servlet-class>
+</servlet>
+ <servlet-mapping>
+		<servlet-name>GridExportExcel</servlet-name>
+		<url-pattern>/GridExportExcel</url-pattern>
+</servlet-mapping>
+
+<servlet>
+		<servlet-name>FileDownloadServlet</servlet-name>
+		<servlet-class>com.cuetrans.core.FileDownloadServlet</servlet-class>
+</servlet>
+ <servlet-mapping>
+		<servlet-name>FileDownloadServlet</servlet-name>
+		<url-pattern>/FileDownloadServlet</url-pattern>
+</servlet-mapping>
+
+<servlet>
+		<servlet-name>ReportDownloadServlet</servlet-name>
+		<servlet-class>com.cuetrans.core.ReportDownloadServlet</servlet-class>
+</servlet>
+ <servlet-mapping>
+		<servlet-name>ReportDownloadServlet</servlet-name>
+		<url-pattern>/ReportDownloadServlet</url-pattern>
+</servlet-mapping>
+
+<servlet>
+		<servlet-name>UploadExcelServlet</servlet-name>
+		<servlet-class>com.bct.cuetrans.UploadExcelServlet</servlet-class>
+</servlet>
+ <servlet-mapping>
+		<servlet-name>UploadExcelServlet</servlet-name>
+		<url-pattern>/UploadExcelServlet</url-pattern>
+</servlet-mapping>
+
+<servlet>
+		<servlet-name>MobileReportServlet</servlet-name>
+		<servlet-class>com.cuetrans.core.MobileReportServlet</servlet-class>
+</servlet>
+ <servlet-mapping>
+		<servlet-name>MobileReportServlet</servlet-name>
+		<url-pattern>/MobileReportServlet</url-pattern>
+</servlet-mapping>
+
+
+
+<servlet>
+        <servlet-name>CueTransSAP</servlet-name>
+        <servlet-class>com.cuetrans.core.CueTransSAP</servlet-class>
+</servlet>
+ 
+<servlet-mapping>
+        <servlet-name>CueTransSAP</servlet-name>
+        <url-pattern>/CueTransSAP/sap</url-pattern>
+</servlet-mapping>
+
+<servlet>
+    <description></description>
+    <display-name>FileServlet</display-name>
+    <servlet-name>UploadFileServlet</servlet-name>
+    <servlet-class>com.bct.cuetrans.UploadFileServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>UploadFileServlet</servlet-name>
+    <url-pattern>/UploadFileServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>DownloadFileServlet</display-name>
+    <servlet-name>DownloadFileServlet</servlet-name>
+    <servlet-class>com.bct.cuetrans.DownloadFileServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>DownloadFileServlet</servlet-name>
+    <url-pattern>/DownloadFileServlet</url-pattern>
+  </servlet-mapping> 
+  
+  <servlet>
+    <description></description>
+    <display-name>RemoveFileServlet</display-name>
+    <servlet-name>RemoveFileServlet</servlet-name>
+    <servlet-class>com.bct.cuetrans.RemoveFileServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RemoveFileServlet</servlet-name>
+    <url-pattern>/RemoveFileServlet</url-pattern>
+  </servlet-mapping>
+  
+  
+  <servlet>
+    <description></description>
+    <display-name>ZipDownloadServlet</display-name>
+    <servlet-name>ZipDownloadServlet</servlet-name>
+    <servlet-class>com.bct.cuetrans.ZipDownloadServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>ZipDownloadServlet</servlet-name>
+    <url-pattern>/ZipDownloadServlet</url-pattern>
+  </servlet-mapping>
+  
+  
+  <servlet>
+    <description></description>
+    <display-name>CopyFileServlet</display-name>
+    <servlet-name>CopyFileServlet</servlet-name>
+    <servlet-class>com.bct.cuetrans.CopyFileServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>CopyFileServlet</servlet-name>
+    <url-pattern>/CopyFileServlet</url-pattern>
+  </servlet-mapping>
+  
+  
+  
+  
+  
+  
+  
+<!--
+<session-config>
+  <cookie-config>
+     <http-only>true</http-only>        
+     <secure>true</secure>        
+  </cookie-config>
+</session-config>
+
+
+	<error-page> 
+		<exception-type>java.lang.Exception</exception-type> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>404</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>403</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>500</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>501</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>400</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>401</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>405</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>408</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>503</error-code> 
+		<location>/error.html</location>
+	</error-page>
+	<error-page> 
+		<error-code>505</error-code> 
+		<location>/error.html</location>
+	</error-page>
+-->
+<filter>
+        <filter-name>httpHeaderSecurity</filter-name>
+        <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+        <async-supported>true</async-supported>
+        <init-param>
+          <param-name>antiClickJackingEnabled</param-name>
+          <param-value>true</param-value>
+        </init-param>
+        <init-param>
+          <param-name>antiClickJackingOption</param-name>
+          <param-value>SAMEORIGIN</param-value>
+        </init-param>
+    </filter>
+  <filter-mapping> 
+    <filter-name>httpHeaderSecurity</filter-name> 
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+
+<!--
+
+<filter>
+    <filter-name>ContentSecurityPolicy</filter-name>
+    <filter-class>com.cuetrans.core.ContentSecurityPolicyFilter</filter-class>
+</filter>
+<filter-mapping>
+    <filter-name>ContentSecurityPolicy</filter-name>
+    <url-pattern>/*</url-pattern>
+</filter-mapping>
+-->
+
+ <!--<security-constraint>
+        <web-resource-collection>
+            <web-resource-name>HTTPSOnly</web-resource-name>
+            <url-pattern>/*</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>HTTPSOrHTTP</web-resource-name>
+            <url-pattern>*.ico</url-pattern>
+            <url-pattern>/resources/*</url-pattern>
+            <url-pattern>/app/*</url-pattern>
+            <url-pattern>/Reports/*</url-pattern>
+
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>NONE</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>-->
+
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+  
+<context-param>
+     <param-name>resteasy.servlet.mapping.prefix</param-name>
+     <param-value>/rest</param-value>
+</context-param>
+  <!--<listener>
+      <listener-class>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap</listener-class>
+</listener>-->
+
+<servlet>  
+    <servlet-name>IVMSServlet</servlet-name>  
+    <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+    <init-param>
+      <param-name>javax.ws.rs.Application</param-name>
+      <param-value>com.cuetrans.core.RestClasses</param-value>
+    </init-param>            
+</servlet>  
+<servlet-mapping>  
+    <servlet-name>IVMSServlet</servlet-name>  
+    <url-pattern>/rest/*</url-pattern>  
+</servlet-mapping>
+
+
+</web-app>
