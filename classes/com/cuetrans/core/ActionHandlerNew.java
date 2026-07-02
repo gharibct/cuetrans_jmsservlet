@@ -80,6 +80,7 @@ public class ActionHandlerNew {
       ActionHandlerNew actionHandlerNew = new ActionHandlerNew();
       response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
       response.setHeader("Pragma", "no-cache");
+      response.setContentType("application/json;charset=UTF-8");
       response.setDateHeader("Expires", 0L);
       if (workFlowName.equals("Logout")) {
          HttpSession session = request.getSession(false);
@@ -169,7 +170,7 @@ public class ActionHandlerNew {
             result.put("strFailureMsg", "System Error. Contact Administrator. Error Code: S002");
             // // System.out.println(e1.getMessage());
          }
-
+         System.out.println("Captcha Validate: " + strCaptchaValidate);
          if (!strCaptchaValidate.equals("N")) {
             HttpSession session = request.getSession(false);
             Captcha captcha = (Captcha) session.getAttribute("simpleCaptcha");
@@ -364,11 +365,12 @@ public class ActionHandlerNew {
             }
 
             if (processType.equals("Report")) {
+               System.out.println("Inside Report Process Type");
                HttpSession session = request.getSession(false);
                String filePath = result.get("retFilePath").toString();
-               // System.out.println("In Action Handler-retFilePath:" + filePath);
+               System.out.println("In Action Handler-retFilePath:" + filePath);
                String OutFileName = result.get("OutFileName").toString();
-               // System.out.println("In Action Handler-OutFileName:" + OutFileName);
+               System.out.println("In Action Handler-OutFileName:" + OutFileName);
                String UID = (new Timestamp(date.getTime())).toString();
                UID.replaceAll("\\s", "");
                session.setAttribute(UID, filePath);
@@ -383,7 +385,7 @@ public class ActionHandlerNew {
             e.printStackTrace();
          }
       }
-
+      System.out.println("\n\n**********Before Converting Response to JSON");
       JSONObject responseData = HashMapJSONParser.convertHashMapToJSONObject(result);
       JSONObject responseObj = new JSONObject();
       Iterator iter = responseData.keys();
@@ -402,7 +404,7 @@ public class ActionHandlerNew {
                if (!key.equals("hdrcache")) {
                   responseObj.put(key, responseData.get(key));
                } else {
-                  // System.out.println("Admin" + responseData.get(key).toString());
+                  System.out.println("Admin" + responseData.get(key).toString());
                   JSONObject hdrCacheJsonObj;
                   JSONArray hdrCacheArray;
                   if (!responseData.get(key).toString().equalsIgnoreCase("null")
@@ -427,17 +429,34 @@ public class ActionHandlerNew {
                }
             }
          } catch (JSONException var35) {
+            System.out.println("Error occurred while processing JSON");
             responseObj.put("strSessionError", "Compilation Error");
          }
       }
-
+      System.out.println("\n\n**********Before Try Response to be sent: ");
       try {
-         TrafficLogger.log("\n" + "\nOUTGOING <<< Response: \n" + responseObj.toString() + "\n\n  ");
 
-         response.getWriter().write(responseObj.toString());
+         System.out.println("\n\n**********Before Traffic Logger");
+         // TrafficLogger.log("\n" + "\nOUTGOING <<< Response: \n" );
+         System.out.println("\n\n**********after Traffic Logger");
+         //response.getWriter().write(responseObj.toString());
+
+         String jsonResponse = responseObj.toString();
+         byte[] responseBytes = jsonResponse.getBytes("UTF-8");
+         response.setContentLength(responseBytes.length);
+         System.out.println("\n\n**********after setContentLength");
+         response.getOutputStream().write(responseBytes);
+         System.out.println("\n\n**********after responsebytes");
+         response.getOutputStream().flush();         
+         System.out.println("\n\n**********After resonse sent: ");
       } catch (IOException e) {
+         System.out.println("## Exception while sending response to client ##" + e);
          result.put("strFailureMsg", "System Error. Contact Administrator. Error Code: S006");
          e.printStackTrace();
+      } catch (Exception ee) {
+         System.out.println("## GeneralException while sending response to client ##" + ee);
+         result.put("strFailureMsg", "System Error. Contact Administrator. Error Code: S006");
+         ee.printStackTrace();
       }
 
    }
@@ -461,12 +480,16 @@ public class ActionHandlerNew {
          System.out.println("\n\n**********Before Invoking Workflow : " + args);
          System.out.println("\n\n**********Before Invoking Workflow : " + workFlowName);
          if (workFlowName.equals("CoreTenantService") || workFlowName.equals("CoreAdminService") || workFlowName.equals("Logout") || workFlowName.equals("CoreLoginService")) {
+            System.out.println("\n\n**********Before Invoking Workflow via BPMS : ");
             result = WebserviceUtility.executeWorkFlow(workFlowName, ipAddress, port, (HashMap) args, iTimeOut);
+            System.out.println("\n\n**********After Invoking Workflow via BPMS : ");
          } 
          else {
             String portRest = actionHandlerNew.getPropertyValues("PortRest");
             String ipAddressRest = actionHandlerNew.getPropertyValues("IPAddressRest");
+            System.out.println("\n\n**********Before Invoking Workflow via REST : ");
             result = sendPost(workFlowName, ipAddressRest, portRest, (HashMap) args, iTimeOut);
+            System.out.println("\n\n**********After Invoking Workflow via REST : ");
          }
       } catch (Exception e) {
          // System.out.println(":: Exception while calling the workflow " + workFlowName

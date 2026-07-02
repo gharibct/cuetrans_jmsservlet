@@ -7,11 +7,19 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.bpms.core.webservice.WebserviceUtility;
 import com.bpms.engine.util.WebserviceAttachmentInfo;
 import com.cuetrans.utils.PropertyUtility;
+import java.util.Properties;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.HttpURLConnection;
+import java.net.URLEncoder;
 import java.util.*;
 
 import javax.servlet.ServletException;
@@ -50,15 +58,23 @@ public class UploadFileServlet extends HttpServlet {
 		JSONObject responseData = new JSONObject();
 		response.setContentType("application/json");
 		PrintWriter out = response.getWriter();
+		
+		System.out.println("Inside doPost");
 
+		String fastAPIFlag = PropertyUtility.getPropertyValues(
+				"FastAPIFlag", getClass().getClassLoader());
+
+		System.out.println("Fast API Flag: " + fastAPIFlag);
 		HttpSession session = request.getSession(false);
 		if (session == null) {
+			System.out.println("File Upload Session Expired");
 			responseData.put("Failure", "Session expired");
 			out.write(responseData.toString());
 			return;
 		}
 
 		if (!ServletFileUpload.isMultipartContent(request)) {
+			System.out.println("File Upload - Invalid request type");
 			responseData.put("Failure", "Invalid request type");
 			out.write(responseData.toString());
 			return;
@@ -80,13 +96,19 @@ public class UploadFileServlet extends HttpServlet {
 
 				validateFile(fileItem, extension);
 
-				if ("LOCAL".equalsIgnoreCase(uploadfilePath)) {
-					handleLocalUpload(originalName, responseData);
-				} else if ("app".equalsIgnoreCase(uploadfilePath)) {
-					handleAppWorkflowUpload(fileItem, originalName, extension,
-							responseData);
+				// Fix: Check for null before calling equalsIgnoreCase
+				if (fastAPIFlag != null && "Y".equalsIgnoreCase(fastAPIFlag)) {
+					System.out.println("Calling fileUploadFastAPI with originalName: " + originalName + " and extension: " + extension);
+					fileUploadFastAPI(fileItem, originalName, extension, responseData);
 				} else {
-					handleS3Upload(fileItem, originalName, responseData);
+					if ("LOCAL".equalsIgnoreCase(uploadfilePath)) {
+						handleLocalUpload(originalName, responseData);
+					} else if ("app".equalsIgnoreCase(uploadfilePath)) {
+						handleAppWorkflowUpload(fileItem, originalName, extension,
+								responseData);
+					} else {
+						handleS3Upload(fileItem, originalName, responseData);
+					}
 				}
 			}
 
@@ -197,4 +219,119 @@ public class UploadFileServlet extends HttpServlet {
 			throws ServletException, IOException {
 		doPost(req, resp);
 	}
+
+	private void fileUploadFastAPI(FileItem fileItem, String fileName,
+								String ext, JSONObject responseData) throws Exception {
+		
+		byte[] fileBytes = fileItem.get();
+		System.out.println("Calling fileUploadFastAPI with fileName: " + fileName + " and extension: " + ext);
+		// Only get tenantId if needed for other purposes
+		String tenantId = PropertyUtility.getPropertyValues("tenantId",
+				getClass().getClassLoader());
+		
+		String port = PropertyUtility.getPropertyValues("PortRest", getClass()
+				.getClassLoader());
+		
+		String ipAddress = PropertyUtility.getPropertyValues("IPAddressRest",
+				getClass().getClassLoader());
+		
+		long timeout = Long.parseLong(PropertyUtility.getPropertyValues(
+				"TimeOut", getClass().getClassLoader()));
+		
+		// Build URL with query parameters
+		String urlString = "http://" + ipAddress + ":" + port + "/uploadFile";
+		System.out.println("FastAPI URL: " + urlString);
+		// Get optional parameters - provide defaults if not found
+		// String userName = PropertyUtility.getPropertyValues("userName",
+		// 		getClass().getClassLoader());
+		// String fileType = PropertyUtility.getPropertyValues("fileType",
+		// 		getClass().getClassLoader());
+		
+		// boolean hasQueryParam = false;
+		// if (userName != null && !userName.trim().isEmpty()) {
+		// 	urlString += "?userName=" + URLEncoder.encode(userName, "UTF-8");
+		// 	hasQueryParam = true;
+		// }
+		// if (fileType != null && !fileType.trim().isEmpty()) {
+		// 	if (!hasQueryParam) {
+		// 		urlString += "?fileType=" + URLEncoder.encode(fileType, "UTF-8");
+		// 	} else {
+		// 		urlString += "&fileType=" + URLEncoder.encode(fileType, "UTF-8");
+		// 	}
+		// }
+		
+		URL url = new URL(urlString);
+		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		conn.setRequestMethod("POST");
+		conn.setDoOutput(true);
+		conn.setDoInput(true);
+		
+		// Set multipart boundary
+		String boundary = "----JavaMultipartBoundary" + System.currentTimeMillis();
+		conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+		conn.setRequestProperty("Accept", "application/json");
+		conn.setConnectTimeout((int) timeout);
+		conn.setReadTimeout((int) timeout);
+		
+		try (OutputStream outputStream = conn.getOutputStream();
+			PrintWriter writer = new PrintWriter(new OutputStreamWriter(outputStream, "UTF-8"), true)) {
+			
+			// Add filePath as form field if available
+			String filePath = PropertyUtility.getPropertyValues("filePath",
+					getClass().getClassLoader());
+			if (filePath != null && !filePath.trim().isEmpty()) {
+				writer.append("--" + boundary).append("\r\n");
+				writer.append("Content-Disposition: form-data; name=\"filePath\"").append("\r\n");
+				writer.append("Content-Type: text/plain; charset=UTF-8").append("\r\n");
+				writer.append("\r\n");
+				writer.append(filePath).append("\r\n");
+				writer.flush();
+			}
+			
+			// Add file content
+			writer.append("--" + boundary).append("\r\n");
+			writer.append("Content-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"").append("\r\n");
+			writer.append("Content-Type: " + fileItem.getContentType()).append("\r\n");
+			writer.append("\r\n");
+			writer.flush();
+			
+			// Write file content as binary
+			outputStream.write(fileBytes);
+			outputStream.flush();
+			writer.append("\r\n");
+			writer.flush();
+			
+			// End of multipart
+			writer.append("--" + boundary + "--").append("\r\n");
+			writer.flush();
+		}
+		
+		int responseCode = conn.getResponseCode();
+		
+		// Read response
+		StringBuilder response = new StringBuilder();
+		try (BufferedReader reader = new BufferedReader(
+				new InputStreamReader(responseCode >= 400 ? conn.getErrorStream() : conn.getInputStream(), "UTF-8"))) {
+			String line;
+			while ((line = reader.readLine()) != null) {
+				response.append(line);
+			}
+		}
+		
+		conn.disconnect();
+		
+		if (responseCode < 200 || responseCode >= 300) {
+			throw new IOException("FastAPI call failed. HTTP Status: " + responseCode + " Response: " + response.toString());
+		}
+		
+		// Parse response
+		JSONObject jsonResponse = JSONObject.fromObject(response.toString());
+		if (jsonResponse.containsKey("fileName")) {
+			responseData.put("fileName", jsonResponse.getString("fileName"));
+		}
+		responseData.put("Success", "File Uploaded Successfully to FastAPI");
+		System.out.println("FastAPI Response Completed Successfully");
+	}
+
+
 }

@@ -16,6 +16,7 @@ public class JMSServlet extends HttpServlet {
 
   protected void doPost(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+        System.out.println("\n\n**********Inside JMSServlet");
     TrafficLogger.log("\n" + "\nINCOMING >>>  Workflow: \n" + request.getParameter("workFlowName") + " \n Params: \n"
         + request.getParameter("workFlowParams") + "\n");
     try {
